@@ -86,7 +86,7 @@ public class DataExport {
         // SOAP Body
         createSOAPBody(envelope);
         
-        // SOAP Header
+        // Header
         MimeHeaders headers = soapMessage.getMimeHeaders();
         headers.addHeader("SOAPAction", this.serverUri  + "DatenExport");
 
@@ -102,7 +102,7 @@ public class DataExport {
 	// SOAPBody aus den Parametern erstellen
 	private void createSOAPBody(SOAPEnvelope envelope) throws SOAPException{
 		
-		// LinkedHashMap statt normaler HashMap, weil diese die Reihenfolge der Parameter nicht ändert.Der Webservice erwartet genau die folgende Reihenfolge..
+		// LinkedHashMap statt normaler HashMap, weil diese die Reihenfolge der Parameter nicht ändert. Der Webservice erwartet genau die folgende Reihenfolge..
 		Map<String, String> paraMap = new LinkedHashMap<String, String>();
 		paraMap.put("kennung", kennung);
 		paraMap.put("passwort", passwort);
