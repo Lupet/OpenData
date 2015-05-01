@@ -17,7 +17,7 @@ public class ExportService {
 		// Rückgabe ist der Inhalt des <quaderDaten>-Knotens der SOAP-Response
 		String data = quader.getData();
         
-        System.out.println(data);
+		System.out.println(data);
 }
 
 

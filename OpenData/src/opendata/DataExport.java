@@ -1,5 +1,10 @@
 package opendata;
 
+import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 import javax.xml.soap.MessageFactory;
 import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPBody;
@@ -37,15 +42,16 @@ public class DataExport {
 	// Webservice
 	private String url = "https://www.regionalstatistik.de/genesisws/services/ExportService";
 	private String serverUri = "https://genesis-regional.it.nrw.de";
-	private String namespace = "http://webservice.genesis";
+	private String namespaceGenesis = "http://webservice.genesis";
+	private String namespaceTags = "web";
 	
 	public DataExport(String namen){
-		// Quadernamen
 		this.namen = namen;
 	}
 	
-	// Daten ziehen
+	// Quaderdaten aus dem Webservice ziehen
 	public String getData() throws Exception, SOAPException{
+		
         // SOAP Connection zeugen
         SOAPConnectionFactory soapConnectionFactory = SOAPConnectionFactory.newInstance();
         javax.xml.soap.SOAPConnection soapConnection = soapConnectionFactory.createConnection();
@@ -54,11 +60,12 @@ public class DataExport {
         SOAPMessage soapRequest = createMessage();
         SOAPMessage soapResponse = soapConnection.call(soapRequest, url);
         
-        // <quaderDaten> aus der Response holen
+        // Element <quaderDaten> aus der Response holen
     	NodeList quaderList = soapResponse.getSOAPBody().getElementsByTagName("quaderDaten");
         Node quaderNode = quaderList.item(0);
         String quaderData = quaderNode.getTextContent();
 
+        // Connention schließen
         soapConnection.close();
         
         return quaderData;
@@ -66,7 +73,7 @@ public class DataExport {
 		
 	// SOAP Message erzeugen
 	private SOAPMessage createMessage() throws Exception{
-		
+				
 		// SOAP Message
         MessageFactory messageFactory = MessageFactory.newInstance();
         SOAPMessage soapMessage = messageFactory.createMessage();
@@ -74,47 +81,12 @@ public class DataExport {
 		
         // SOAP Envelope
         SOAPEnvelope envelope = soapPart.getEnvelope();
-        envelope.addNamespaceDeclaration("web", namespace);
+        envelope.addNamespaceDeclaration(namespaceTags, namespaceGenesis);
         
         // SOAP Body
-        SOAPBody soapBody = envelope.getBody();
-        SOAPElement soapBodyElem = soapBody.addChildElement("DatenExport", "web");
+        createSOAPBody(envelope);
         
-        // Einzelnen Parameter hinzufügen, geht sicher auch schlauer :)
-        SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("kennung", "web");
-        soapBodyElem1.addTextNode(kennung);
-        SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("passwort", "web");
-        soapBodyElem2.addTextNode(passwort);
-        SOAPElement soapBodyElem3 = soapBodyElem.addChildElement("namen", "web");
-        soapBodyElem3.addTextNode(namen);
-        SOAPElement soapBodyElem4 = soapBodyElem.addChildElement("bereich", "web");
-        soapBodyElem4.addTextNode(bereich);
-        SOAPElement soapBodyElem5 = soapBodyElem.addChildElement("format", "web");
-        soapBodyElem5.addTextNode(format);
-        SOAPElement soapBodyElem6 = soapBodyElem.addChildElement("werte", "web");
-        soapBodyElem6.addTextNode(werte);
-        SOAPElement soapBodyElem7 = soapBodyElem.addChildElement("metadaten", "web");
-        soapBodyElem7.addTextNode(metadaten);
-        SOAPElement soapBodyElem8 = soapBodyElem.addChildElement("zusatz", "web");
-        soapBodyElem8.addTextNode(zusatz);
-        SOAPElement soapBodyElem9 = soapBodyElem.addChildElement("startjahr", "web");
-        soapBodyElem9.addTextNode(startjahr);
-        SOAPElement soapBodyElem10 = soapBodyElem.addChildElement("endjahr", "web");
-        soapBodyElem10.addTextNode(endjahr);
-        SOAPElement soapBodyElem11 = soapBodyElem.addChildElement("zeitscheiben", "web");
-        soapBodyElem11.addTextNode(zeitscheiben);
-        SOAPElement soapBodyElem12 = soapBodyElem.addChildElement("regionalschluessel", "web");
-        soapBodyElem12.addTextNode(regionalschluessel);
-        SOAPElement soapBodyElem13 = soapBodyElem.addChildElement("sachmerkmal", "web");
-        soapBodyElem13.addTextNode(sachmerkmal);
-        SOAPElement soapBodyElem14 = soapBodyElem.addChildElement("sachschluessel", "web");
-        soapBodyElem14.addTextNode(sachschluessel);
-        SOAPElement soapBodyElem15 = soapBodyElem.addChildElement("stand", "web");
-        soapBodyElem15.addTextNode(stand);
-        SOAPElement soapBodyElem16 = soapBodyElem.addChildElement("sprache", "web");
-        soapBodyElem16.addTextNode(sprache);
-        
-        // Header
+        // SOAP Header
         MimeHeaders headers = soapMessage.getMimeHeaders();
         headers.addHeader("SOAPAction", this.serverUri  + "DatenExport");
 
@@ -127,8 +99,46 @@ public class DataExport {
 		return soapMessage;
 	}
 
+	// SOAPBody aus den Parametern erstellen
+	private void createSOAPBody(SOAPEnvelope envelope) throws SOAPException{
+		
+		// LinkedHashMap statt normaler HashMap, weil diese die Reihenfolge der Parameter nicht ändert.Der Webservice erwartet genau die folgende Reihenfolge..
+		Map<String, String> paraMap = new LinkedHashMap<String, String>();
+		paraMap.put("kennung", kennung);
+		paraMap.put("passwort", passwort);
+		paraMap.put("namen", namen);
+		paraMap.put("bereich", bereich);
+		paraMap.put("format", format);
+		paraMap.put("werte", werte);
+		paraMap.put("metadaten", metadaten);
+		paraMap.put("zusatz", zusatz);
+		paraMap.put("startjahr", startjahr);
+		paraMap.put("endjahr", endjahr);
+		paraMap.put("zeitscheiben", zeitscheiben);
+		paraMap.put("regionalschluessel", regionalschluessel);
+		paraMap.put("sachmerkmal", sachmerkmal);
+		paraMap.put("sachschluessel", sachschluessel);
+		paraMap.put("stand", stand);
+		paraMap.put("sprache", sprache);
+		
+		// Parent-Element <DatenExport>
+        SOAPBody soapBody = envelope.getBody();
+        SOAPElement soapBodyElem = soapBody.addChildElement("DatenExport", namespaceTags);
+        
+        // Durch die Parameter-Map iterieren und jeweils ein SOAPElement erstellen, füllen und an <DatenExport> hängen
+        Iterator<Entry<String, String>> it = paraMap.entrySet().iterator();
+        while (it.hasNext()) {
+            Map.Entry<String,String> pair = (Map.Entry<String,String>)it.next();
+            
+            SOAPElement soapTmpElement = soapBodyElem.addChildElement(pair.getKey(), namespaceTags);
+            soapTmpElement.addTextNode(pair.getValue());
+            
+            it.remove();
+        }
+	}
 	
 	
+	// setter/getter, falls man die default-Parameter überschreiben will
 	public String getKennung() {
 		return kennung;
 	}
@@ -237,10 +247,16 @@ public class DataExport {
 	public void setServerUri(String serverUri) {
 		this.serverUri = serverUri;
 	}
-	public String getNamespace() {
-		return namespace;
+	public String getNamespaceGenesis() {
+		return namespaceGenesis;
 	}
-	public void setNamespace(String namespace) {
-		this.namespace = namespace;
+	public void setNamespaceGenesis(String namespace) {
+		this.namespaceGenesis = namespace;
+	}
+	public String getNamespaceTags() {
+		return namespaceTags;
+	}
+	public void setNamespaceTags(String namespaceTags) {
+		this.namespaceTags = namespaceTags;
 	}
 }
