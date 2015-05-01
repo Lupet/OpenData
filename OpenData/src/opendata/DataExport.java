@@ -80,7 +80,7 @@ public class DataExport {
         SOAPBody soapBody = envelope.getBody();
         SOAPElement soapBodyElem = soapBody.addChildElement("DatenExport", "web");
         
-        // Einzelnen Parameter hinzufügen, geht sicher auch schlauer :)
+        // Einzelnen Parameter hinzufÃ¼gen
         SOAPElement soapBodyElem1 = soapBodyElem.addChildElement("kennung", "web");
         soapBodyElem1.addTextNode(kennung);
         SOAPElement soapBodyElem2 = soapBodyElem.addChildElement("passwort", "web");
